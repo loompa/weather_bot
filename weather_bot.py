@@ -4,13 +4,7 @@ import pyowm
 
 from geopy.geocoders import Nominatim
 
-from tokens import BOT_TOKEN
-from tokens import OPEN_WEATHER_TOKEN
-
 from constants import HELLO_MSG, WEATHER_STATUS_TO_MSG, KELVIN_DELTA
-
-geolocator = Nominatim(user_agent="ru")
-owm = pyowm.OWM(OPEN_WEATHER_TOKEN)
 
 
 def get_weather_status(user_city):
@@ -20,9 +14,8 @@ def get_weather_status(user_city):
     location_city = location[0].split(",")[0]
     location_country = location[0].split(",")[-1]
 
-    weather = owm.weather_at_coords(location.latitude, location.longitude).to_JSON()  # .weather
+    weather = owm.weather_at_coords(location.latitude, location.longitude).to_JSON()
     weather = json.loads(weather)["Weather"]
-    print(weather)
     weather_status = weather["status"]
     try:
         status = WEATHER_STATUS_TO_MSG[weather_status]
@@ -47,13 +40,24 @@ def start(update, context):
 
 def reply(update, context):
     user_text = update.message.text
-    print(user_text)
     out = get_weather_status(user_text)
     update.message.reply_text(out)
 
 
 if __name__ == "__main__":
-    updater = Updater(BOT_TOKEN, use_context=True)
+    try:
+        token_file = open("tokens.txt", "r")
+        lines = token_file.readlines()
+        bot_token = lines[0].rstrip()
+        owm_token = lines[1].rstrip()
+    except FileNotFoundError:
+        print("Please create tokens.txt")
+    except IndexError:
+        print("Incorrect number of tokens")
+
+    geolocator = Nominatim(user_agent="ru")
+    owm = pyowm.OWM(owm_token)
+    updater = Updater(bot_token, use_context=True)
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))

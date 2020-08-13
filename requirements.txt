@@ -1,0 +1,3 @@
+pyowm==2.10.0
+python-telegram-bot==12.8
+geopy==2.0.0
